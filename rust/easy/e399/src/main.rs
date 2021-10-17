@@ -3,6 +3,7 @@
 use e399::WordList;
 use itertools::Itertools;
 use std::{
+    collections::HashMap,
     fs::File,
     io::{prelude::*, BufReader},
     vec,
@@ -36,18 +37,36 @@ fn bonus3(word_list: &WordList) -> (u32, usize) {
 }
 
 fn bonus4(word_list: &WordList) -> Option<(u32, String, String)> {
-    for (&letter_sum, words) in &word_list.words_by_letter_sum {
-        for pair in words.iter().combinations(2) {
-            if pair[0] != "zyzzyva"
-                && pair[0] != "biodegradabilities"
-                && pair[1] != "zyzzyva"
-                && pair[1] != "biodegradabilities"
-                && (pair[0].len() as isize - pair[1].len() as isize).abs() == 11
-            {
-                return Some((letter_sum, pair[0].clone(), pair[1].clone()));
+    for (&length, words_a) in &word_list.words_by_length {
+        if let Some(words_b) = word_list.words_by_length.get(&(length + 11)) {
+            let mut map = HashMap::new();
+            for a in words_a {
+                if a != "zyzzyva" && a != "biodegradabilities" {
+                    map.insert(WordList::letter_sum(a), a);
+                }
+            }
+            for b in words_b {
+                if b != "zyzzyva" && b != "biodegradabilities" {
+                    if let Some(&a) = map.get(&WordList::letter_sum(b)) {
+                        return Some((WordList::letter_sum(a), a.clone(), b.clone()));
+                    }
+                }
             }
         }
     }
+
+    // for (&letter_sum, words) in &word_list.words_by_letter_sum {
+    //     for pair in words.iter().combinations(2) {
+    //         if pair[0] != "zyzzyva"
+    //             && pair[0] != "biodegradabilities"
+    //             && pair[1] != "zyzzyva"
+    //             && pair[1] != "biodegradabilities"
+    //             && (pair[0].len() as isize - pair[1].len() as isize).abs() == 11
+    //         {
+    //             return Some((letter_sum, pair[0].clone(), pair[1].clone()));
+    //         }
+    //     }
+    // }
     None
 }
 
@@ -84,16 +103,18 @@ fn bonus6(word_list: &WordList) -> (usize, Vec<&String>) {
     {
         for start_word in start_words {
             let mut list = vec![start_word];
+            let mut prev_len = start_word.len();
             for (_, words) in word_list
                 .words_by_letter_sum
                 .range(start_letter_sum..max_letter_sum + 1)
             {
-                for next_word in words.iter().rev() {
-                    if next_word.len() < list.last().unwrap().len() {
-                        list.push(next_word);
-                        break;
-                    }
+                // index of the first string >= prev
+                let index = words.partition_point(|s| s.len() < prev_len);
+                if index == 0 {
+                    continue;
                 }
+                list.push(&words[index - 1]);
+                prev_len = words[index - 1].len();
             }
             if list.len() > best_list.len() {
                 best_list = list;

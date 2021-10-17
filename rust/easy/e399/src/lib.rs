@@ -3,6 +3,7 @@ use std::collections::BTreeMap;
 pub struct WordList {
     pub words: Vec<String>,
     pub words_by_letter_sum: BTreeMap<u32, Vec<String>>,
+    pub words_by_length: BTreeMap<usize, Vec<String>>,
 }
 
 impl WordList {
@@ -11,16 +12,26 @@ impl WordList {
         for word in &words {
             let vec = words_by_letter_sum
                 .entry(Self::letter_sum(word))
-                .or_insert(Vec::new());
+                .or_insert_with(Vec::new);
             vec.push(word.clone());
         }
         for vec in words_by_letter_sum.values_mut() {
             vec.sort_by(|a, b| a.len().cmp(&b.len()));
         }
 
+        let mut words_by_length = BTreeMap::new();
+        for word in &words {
+            let vec = words_by_length.entry(word.len()).or_insert_with(Vec::new);
+            vec.push(word.clone());
+        }
+        for vec in words_by_length.values_mut() {
+            vec.sort_by(|a, b| Self::letter_sum(a).cmp(&Self::letter_sum(b)));
+        }
+
         WordList {
             words,
             words_by_letter_sum,
+            words_by_length,
         }
     }
 
@@ -33,10 +44,7 @@ impl WordList {
     }
 
     pub fn with_letter_sum(&self, sum: u32) -> Option<Vec<String>> {
-        match self.words_by_letter_sum.get(&sum) {
-            Some(vec) => Some(vec.clone()),
-            None => None,
-        }
+        self.words_by_letter_sum.get(&sum).cloned()
     }
 
     pub fn with_letter_sum_predicate<F>(&self, f: F) -> Option<Vec<String>>

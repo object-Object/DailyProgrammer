@@ -54,19 +54,6 @@ fn bonus4(word_list: &WordList) -> Option<(u32, String, String)> {
             }
         }
     }
-
-    // for (&letter_sum, words) in &word_list.words_by_letter_sum {
-    //     for pair in words.iter().combinations(2) {
-    //         if pair[0] != "zyzzyva"
-    //             && pair[0] != "biodegradabilities"
-    //             && pair[1] != "zyzzyva"
-    //             && pair[1] != "biodegradabilities"
-    //             && (pair[0].len() as isize - pair[1].len() as isize).abs() == 11
-    //         {
-    //             return Some((letter_sum, pair[0].clone(), pair[1].clone()));
-    //         }
-    //     }
-    // }
     None
 }
 
